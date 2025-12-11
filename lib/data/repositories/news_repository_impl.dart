@@ -1,6 +1,6 @@
 import '../../domain/repositories/news_repository.dart';
 import '../../domain/entities/news_entity.dart';
-import '../datasources/news_local_datasource.dart';
+import '../datasources/local/news_local_datasource.dart';
 import '../../core/models/news_model.dart';
 
 class NewsRepositoryImpl implements NewsRepository {
@@ -36,19 +36,29 @@ class NewsRepositoryImpl implements NewsRepository {
 
   @override
   Future<List<CurrencyRateEntity>> getCurrencyRates() async {
-    final models = await localDataSource.getCurrencyRates();
-    return models.map(_rateModelToEntity).toList();
+    // TODO: Реализовать получение курсов валют
+    // Сейчас возвращаем пустой список, так как в NewsLocalDataSource нет этого метода
+    // Вам нужно либо:
+    // 1. Добавить метод getCurrencyRates() в NewsLocalDataSource
+    // 2. Создать отдельный CurrencyRateLocalDataSource
+    // 3. Получать данные из API
+
+    return [];
+
+    // Пример, если бы был метод в DataSource:
+    // final models = await localDataSource.getCurrencyRates();
+    // return models.map(_rateModelToEntity).toList();
   }
 
   @override
   Future<List<NewsArticleEntity>> getNews() async {
-    final models = await localDataSource.getNews();
+    final models = await localDataSource.getAllNewsArticles(); // Исправлено с getNews() на getAllNewsArticles()
     return models.map(_articleModelToEntity).toList();
   }
 
   @override
   Future<NewsArticleEntity?> getNewsById(String id) async {
-    final model = await localDataSource.getNewsById(id);
+    final model = await localDataSource.getNewsArticleById(id); // Исправлено с getNewsById() на getNewsArticleById()
     return model != null ? _articleModelToEntity(model) : null;
   }
 
@@ -57,4 +67,3 @@ class NewsRepositoryImpl implements NewsRepository {
     await localDataSource.markAsRead(newsId);
   }
 }
-

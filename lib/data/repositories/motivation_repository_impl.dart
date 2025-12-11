@@ -1,7 +1,8 @@
 import '../../domain/repositories/motivation_repository.dart';
 import '../../domain/entities/motivation_entity.dart';
-import '../datasources/motivation_local_datasource.dart';
+import '../datasources/local/motivation_local_datasource.dart';
 import '../../core/models/motivation_model.dart';
+import 'dart:math';
 
 class MotivationRepositoryImpl implements MotivationRepository {
   final MotivationLocalDataSource localDataSource;
@@ -21,13 +22,19 @@ class MotivationRepositoryImpl implements MotivationRepository {
 
   @override
   Future<MotivationContentEntity> getRandomContent(ContentType type) async {
-    final model = await localDataSource.getRandomContent(type);
-    return _modelToEntity(model);
+    final models = await localDataSource.getMotivationsByType(type);
+
+    if (models.isEmpty) {
+      throw Exception('No motivation content found for type: $type');
+    }
+
+    final randomIndex = Random().nextInt(models.length);
+    return _modelToEntity(models[randomIndex]);
   }
 
   @override
   Future<List<MotivationContentEntity>> getFavoriteContent() async {
-    final models = await localDataSource.getFavorites();
+    final models = await localDataSource.getFavoriteMotivations(); // Исправлено с getFavorites() на getFavoriteMotivations()
     return models.map(_modelToEntity).toList();
   }
 
@@ -36,4 +43,3 @@ class MotivationRepositoryImpl implements MotivationRepository {
     await localDataSource.toggleFavorite(id);
   }
 }
-

@@ -1,6 +1,6 @@
 import '../../domain/repositories/social_repository.dart';
 import '../../domain/entities/friend_entity.dart';
-import '../datasources/social_local_datasource.dart';
+import '../datasources/local/social_local_datasource.dart';
 import '../../core/models/friend_model.dart';
 
 class SocialRepositoryImpl implements SocialRepository {

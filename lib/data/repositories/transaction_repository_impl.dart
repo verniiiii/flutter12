@@ -1,6 +1,6 @@
 import '../../domain/repositories/transaction_repository.dart';
 import '../../domain/entities/transaction_entity.dart';
-import '../datasources/transaction_local_datasource.dart';
+import '../datasources/local/transaction_local_datasource.dart';
 import '../../core/models/transaction_model.dart';
 import '../../core/constants/categories.dart';
 
@@ -35,7 +35,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<List<TransactionEntity>> getTransactions() async {
-    final models = await localDataSource.getTransactions();
+    final models = await localDataSource.getAllTransactions();
     return models.map(_modelToEntity).toList();
   }
 
@@ -47,7 +47,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<void> addTransaction(TransactionEntity transaction) async {
-    await localDataSource.addTransaction(_entityToModel(transaction));
+    await localDataSource.createTransaction(_entityToModel(transaction));
   }
 
   @override

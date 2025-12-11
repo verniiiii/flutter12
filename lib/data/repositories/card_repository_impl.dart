@@ -1,6 +1,6 @@
 import '../../domain/repositories/card_repository.dart';
 import '../../domain/entities/card_entity.dart';
-import '../datasources/card_local_datasource.dart';
+import '../datasources/local/card_local_datasource.dart';
 import '../../core/models/card_model.dart';
 
 class CardRepositoryImpl implements CardRepository {
@@ -44,7 +44,7 @@ class CardRepositoryImpl implements CardRepository {
 
   @override
   Future<List<CardEntity>> getCards() async {
-    final models = await localDataSource.getCards();
+    final models = await localDataSource.getAllCards();
     return models.map(_modelToEntity).toList();
   }
 
@@ -56,7 +56,7 @@ class CardRepositoryImpl implements CardRepository {
 
   @override
   Future<void> addCard(CardEntity card) async {
-    await localDataSource.addCard(_entityToModel(card));
+    await localDataSource.createCard(_entityToModel(card));
   }
 
   @override

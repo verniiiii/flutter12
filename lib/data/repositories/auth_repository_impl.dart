@@ -1,6 +1,6 @@
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/entities/user_entity.dart';
-import '../datasources/auth_local_datasource.dart';
+import '../datasources/local/auth_local_datasource.dart';
 import '../../core/models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
