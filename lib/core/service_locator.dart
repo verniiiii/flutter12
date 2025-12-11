@@ -1,17 +1,22 @@
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Core Models
 import 'package:prac12/core/models/transaction_model.dart';
 
-// Data Sources
-import 'package:prac12/data/datasources/transaction_local_datasource.dart';
-import 'package:prac12/data/datasources/auth_local_datasource.dart';
-import 'package:prac12/data/datasources/card_local_datasource.dart';
-import 'package:prac12/data/datasources/news_local_datasource.dart';
-import 'package:prac12/data/datasources/motivation_local_datasource.dart';
-import 'package:prac12/data/datasources/social_local_datasource.dart';
+// All Local Data Sources (from local/ folder)
+import 'package:prac12/data/datasources/local/app_database.dart';
+import 'package:prac12/data/datasources/local/transaction_local_datasource.dart';
+import 'package:prac12/data/datasources/local/card_local_datasource.dart';
+import 'package:prac12/data/datasources/local/motivation_local_datasource.dart';
+import 'package:prac12/data/datasources/local/news_local_datasource.dart';
+import 'package:prac12/data/datasources/local/settings_local_datasource.dart';
+import 'package:prac12/data/datasources/local/user_local_datasource.dart';
+import 'package:prac12/data/datasources/local/auth_local_datasource.dart';
+import 'package:prac12/data/datasources/local/social_local_datasource.dart';
 
 // Repositories
 import 'package:prac12/data/repositories/transaction_repository_impl.dart';
@@ -65,26 +70,60 @@ import 'package:prac12/ui/features/transactions/state/transactions_list_store.da
 
 final GetIt getIt = GetIt.instance;
 
-void setupServiceLocator() {
-  // ========== DATA SOURCES ==========
-  final transactionLocalDataSource = TransactionLocalDataSource();
+Future<void> setupServiceLocator() async {
+  // ========== CORE DEPENDENCIES ==========
+  // Initialize SharedPreferences
+  final sharedPreferences = await SharedPreferences.getInstance();
+  getIt.registerSingleton<SharedPreferences>(sharedPreferences);
+
+  // Initialize Flutter Secure Storage
+  const secureStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+  );
+  getIt.registerSingleton<FlutterSecureStorage>(secureStorage);
+
+  // Initialize AppDatabase (SQLite) - Только вызов статических методов для инициализации
+  // AppDatabase не нужно регистрировать как singleton, так как он полностью статический
+
+  // ========== SQLite DATA SOURCES (from local/ folder) ==========
+  // These use SQLite for persistent storage
+  final transactionSqliteDataSource = TransactionLocalDataSource();
+  final cardSqliteDataSource = CardLocalDataSource();
+  final motivationSqliteDataSource = MotivationLocalDataSource();
+  final newsSqliteDataSource = NewsLocalDataSource();
+
+  // Register as base types for use in repositories
+  getIt.registerSingleton<TransactionLocalDataSource>(transactionSqliteDataSource);
+  getIt.registerSingleton<CardLocalDataSource>(cardSqliteDataSource);
+  getIt.registerSingleton<MotivationLocalDataSource>(motivationSqliteDataSource);
+  getIt.registerSingleton<NewsLocalDataSource>(newsSqliteDataSource);
+
+  // SharedPreferences Data Source
+  final settingsLocalDataSource = SettingsLocalDataSource(sharedPreferences);
+  getIt.registerSingleton<SettingsLocalDataSource>(settingsLocalDataSource);
+
+  // Flutter Secure Storage Data Source
+  final userLocalDataSource = UserLocalDataSource(secureStorage);
+  getIt.registerSingleton<UserLocalDataSource>(userLocalDataSource);
+
+  // ========== DATA SOURCES FOR REPOSITORIES (from local/ folder) ==========
+  // Using the same SQLite instances registered above
+  final transactionLocalDataSource = transactionSqliteDataSource;
+  final cardLocalDataSource = cardSqliteDataSource;
+  final newsLocalDataSource = newsSqliteDataSource;
+  final motivationLocalDataSource = motivationSqliteDataSource;
+  
+  // Other data sources
   final authLocalDataSource = AuthLocalDataSource();
-  final cardLocalDataSource = CardLocalDataSource();
-  final newsLocalDataSource = NewsLocalDataSource();
-  final motivationLocalDataSource = MotivationLocalDataSource();
   final socialLocalDataSource = SocialLocalDataSource();
 
-  getIt.registerSingleton<TransactionLocalDataSource>(transactionLocalDataSource);
   getIt.registerSingleton<AuthLocalDataSource>(authLocalDataSource);
-  getIt.registerSingleton<CardLocalDataSource>(cardLocalDataSource);
-  getIt.registerSingleton<NewsLocalDataSource>(newsLocalDataSource);
-  getIt.registerSingleton<MotivationLocalDataSource>(motivationLocalDataSource);
   getIt.registerSingleton<SocialLocalDataSource>(socialLocalDataSource);
 
-  // Initialize mock state
-  cardLocalDataSource.initializeMockData();
-  newsLocalDataSource.initializeMockData();
-  motivationLocalDataSource.initializeMockData();
+  // Initialize mock state for data sources that need it
+  // Note: SQLite-based sources don't need initializeMockData, but social still does
   socialLocalDataSource.initializeMockData();
 
   // ========== REPOSITORIES ==========

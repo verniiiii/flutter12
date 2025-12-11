@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'core/service_locator.dart';
 import 'app_router.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
   // Инициализируем Service Locator
-  setupServiceLocator();
+  await setupServiceLocator();
 
   runApp(MyApp());
 }
